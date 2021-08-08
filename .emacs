@@ -233,7 +233,8 @@
                          (bookmarks . 5)
                          (projects . 5))
        dashboard-page-separator "\n\f\n"
-       dashboard-footer-messages '("Welcome To EMACS!")))
+       dashboard-set-init-info t
+       dashboard-set-footer t))
 
     #+end_src
 

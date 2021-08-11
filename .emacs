@@ -485,6 +485,223 @@
 
     #+end_src
 
+*** Magit
+
+    Setup =magit= for version control using =git=.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `magit'
+    (use-package magit
+      :bind ("C-M-;" . magit-status)
+      :commands (magit-status magit-get-current-branch)
+      :custom
+      (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+    #+end_src
+
+    Define custom keybindings.
+
+    #+begin_src emacs-lisp
+
+    ;; Define custom keybindings
+    (leader-key-def
+      "g" '(:ignore t :which-key "git")
+      "gb" 'magit-branch
+      "gc" 'magit-branch-or-checkout
+      "gd" 'magit-diff-unstaged
+      "gf" 'magit-fetch
+      "gF" 'magit-fetch-all
+      "gl" '(:ignore t :which-key "log")
+      "glc" 'magit-log-current
+      "glf" 'magit-log-buffer-file
+      "gp" 'magit-pull-branch
+      "gP" 'magit-push-current
+      "gr" 'magit-rebase
+      "gs" 'magit-status)
+
+    #+end_src
+
+** Programming
+*** Syntax Checking
+
+    Enable syntax checking using =flycheck=.
+
+    #+begin_src emacs-lisp
+
+    ;; Enable `flycheck' for syntax checking
+    (use-package flycheck
+      :defer t
+      :hook (lsp-mode . flycheck-mode))
+
+    #+end_src
+
+*** Language Server Protocol
+
+    Enable =lsp= for programming.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `lsp'
+    (use-package lsp-mode
+      :commands lsp
+      :hook (((js2-mode
+               rjsx-mode
+               html-mode
+               css-mode
+               json-mode) . lsp)
+             (lsp-mode . lsp-enable-which-key-integration))
+      :bind (:map lsp-mode-map
+                  ("TAB" . completion-at-point))
+      :config
+      (setq
+       lsp-idle-delay 0.500
+       lsp-headerline-arrow ""))
+
+    #+end_src
+
+    Integration of =lsp= with =helm=.
+
+    #+begin_src emacs-lisp
+
+    ;; Integrate `helm' with `lsp'
+    (use-package helm-lsp
+      :requires (lsp-mode helm)
+      :config
+      (define-key lsp-mode-map [remap xref-find-apropos] 'helm-lsp-workspace-symbol))
+
+    #+end_src
+
+    Integration of =lsp= wth =treemacs=.
+
+    #+begin_src emacs-lisp
+
+    ;; Integrate `lsp' with `treemacs'
+    (use-package lsp-treemacs
+      :requires (lsp-mode treemacs)
+      :config
+      (lsp-treemacs-sync-mode 1))
+
+    #+end_src
+
+    Define custom keybindings for =lsp-mode=.
+
+    #+begin_src emacs-lisp
+
+    ;; Define custom keybindigs for `lsp-mode'
+    (leader-key-def
+      "l" '(:ignore t :which-key "lsp")
+      "ld" 'lsp-find-definitions
+      "lr" 'lsp-find-references
+      "ls" 'helm-imenu)
+
+    #+end_src
+
+*** Emmet Completion
+
+    Setup =emmet-mode= for =html= and =css= abbreviation.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `emmet-mode'
+    (use-package emmet-mode
+      :straight (emmet-mode
+                 :fetcher github
+                 :repo "shaneikennedy/emmet-mode")
+      :hook ((rjsx-mode
+              mhtml-mode
+              css-mode) . emmet-mode)
+      :config
+      (setq emmet-move-cursor-between-quotes 1))
+
+    #+end_src
+
+*** REST Client
+
+    Setup =restclient= for handling =REST API=.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `restclient'
+    (use-package restclient
+      :mode ("\\.http\\'" . restclient-mode))
+
+    #+end_src
+
+    Setup =company-backend= for =restclient= using =company-restclient=.
+
+    #+begin_src emacs-lisp
+
+    ;; Use `company-restclient' as `company-backed' for `restclient-mode'
+    (use-package company-restclient
+      :requires (restclient company)
+      :config
+      (add-to-list 'company-backends 'company-restclient))
+
+    #+end_src
+
+    Setup =org-babel= support for =restclient= using =ob-restclient=
+
+    #+begin_src emacs-lisp
+
+    ;; Use `ob-restclient' for `org-babel' support
+    (use-package ob-restclient)
+
+    #+end_src
+
+*** Rainbow Mode
+
+    Sets background of HTML color strings in buffers.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `rainbow-mode'
+    (use-package rainbow-mode
+      :defer t
+      :hook (org-mode
+             emacs-lisp-mode
+             mhtml-mode
+             css-mode
+             js2-mode
+             rjsx-mode))
+
+    #+end_src
+
+** Languages
+*** Javascript
+
+    Setup =js2-mode= for =Javascript= development.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `js2-mode'
+    (use-package js2-mode
+      :mode "\\.js\\'"
+      :hook (js2-mode . js2-imenu-extras-mode))
+
+    #+end_src
+
+*** React JS
+
+    Setup =rjsx-mode= for =React JS= development.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `rjsx-mode'
+    (use-package rjsx-mode
+      :mode "\\.jsx\\'")
+
+    #+end_src
+
+    Configure =emmet-mode= for =rjsx-mode=.
+
+    #+begin_src emacs-lisp
+
+    ;; Expand `class' to `className' in `rjsx-mode'
+    (add-hook 'rjsx-mode-hook (lambda () (setq emmet-expand-jsx-className? t)))
+
+    #+end_src
+
 ** Org Mode
 *** Customize Org Ellipsis
 
@@ -559,7 +776,8 @@
      ;; Add languages
      (org-babel-do-load-languages
       'org-babel-load-languages
-      '((emacs-lisp .t)))
+      '((emacs-lisp . t)
+        (restclient . t)))
 
      #+end_src
 
@@ -595,6 +813,7 @@
      (require 'org-tempo)
      (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+     (add-to-list 'org-structure-template-alist '("rest" . "src restclient :pretty"))
 
      #+end_src
 

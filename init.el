@@ -269,6 +269,115 @@
 (use-package treemacs-projectile
   :requires (treemacs projectile))
 
+;; Setup `magit'
+(use-package magit
+  :bind ("C-M-;" . magit-status)
+  :commands (magit-status magit-get-current-branch)
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+;; Define custom keybindings
+(leader-key-def
+  "g" '(:ignore t :which-key "git")
+  "gb" 'magit-branch
+  "gc" 'magit-branch-or-checkout
+  "gd" 'magit-diff-unstaged
+  "gf" 'magit-fetch
+  "gF" 'magit-fetch-all
+  "gl" '(:ignore t :which-key "log")
+  "glc" 'magit-log-current
+  "glf" 'magit-log-buffer-file
+  "gp" 'magit-pull-branch
+  "gP" 'magit-push-current
+  "gr" 'magit-rebase
+  "gs" 'magit-status)
+
+;; Enable `flycheck' for syntax checking
+(use-package flycheck
+  :defer t
+  :hook (lsp-mode . flycheck-mode))
+
+;; Setup `lsp'
+(use-package lsp-mode
+  :commands lsp
+  :hook (((js2-mode
+           rjsx-mode
+           html-mode
+           css-mode
+           json-mode) . lsp)
+         (lsp-mode . lsp-enable-which-key-integration))
+  :bind (:map lsp-mode-map
+              ("TAB" . completion-at-point))
+  :config
+  (setq
+   lsp-idle-delay 0.500
+   lsp-headerline-arrow ""))
+
+;; Integrate `helm' with `lsp'
+(use-package helm-lsp
+  :requires (lsp-mode helm)
+  :config
+  (define-key lsp-mode-map [remap xref-find-apropos] 'helm-lsp-workspace-symbol))
+
+;; Integrate `lsp' with `treemacs'
+(use-package lsp-treemacs
+  :requires (lsp-mode treemacs)
+  :config
+  (lsp-treemacs-sync-mode 1))
+
+;; Define custom keybindigs for `lsp-mode'
+(leader-key-def
+  "l" '(:ignore t :which-key "lsp")
+  "ld" 'lsp-find-definitions
+  "lr" 'lsp-find-references
+  "ls" 'helm-imenu)
+
+;; Setup `emmet-mode'
+(use-package emmet-mode
+  :straight (emmet-mode
+             :fetcher github
+             :repo "shaneikennedy/emmet-mode")
+  :hook ((rjsx-mode
+          mhtml-mode
+          css-mode) . emmet-mode)
+  :config
+  (setq emmet-move-cursor-between-quotes 1))
+
+;; Setup `restclient'
+(use-package restclient
+  :mode ("\\.http\\'" . restclient-mode))
+
+;; Use `company-restclient' as `company-backed' for `restclient-mode'
+(use-package company-restclient
+  :requires (restclient company)
+  :config
+  (add-to-list 'company-backends 'company-restclient))
+
+;; Use `ob-restclient' for `org-babel' support
+(use-package ob-restclient)
+
+;; Setup `rainbow-mode'
+(use-package rainbow-mode
+  :defer t
+  :hook (org-mode
+         emacs-lisp-mode
+         mhtml-mode
+         css-mode
+         js2-mode
+         rjsx-mode))
+
+;; Setup `js2-mode'
+(use-package js2-mode
+  :mode "\\.js\\'"
+  :hook (js2-mode . js2-imenu-extras-mode))
+
+;; Setup `rjsx-mode'
+(use-package rjsx-mode
+  :mode "\\.jsx\\'")
+
+;; Expand `class' to `className' in `rjsx-mode'
+(add-hook 'rjsx-mode-hook (lambda () (setq emmet-expand-jsx-className? t)))
+
 ;; Customize `org-ellipsis'
 (use-package org
   :config
@@ -304,7 +413,8 @@
 ;; Add languages
 (org-babel-do-load-languages
  'org-babel-load-languages
- '((emacs-lisp .t)))
+ '((emacs-lisp . t)
+   (restclient . t)))
 
 ;; Defining the function for auto tangle
 (defun sn/org-babel-tangle-config ()
@@ -324,6 +434,7 @@
 (require 'org-tempo)
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("rest" . "src restclient :pretty"))
 
 ;; Enable `evil-org'
 (use-package evil-org

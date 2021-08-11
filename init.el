@@ -1,3 +1,6 @@
+;; Disable Menu Bar.
+(menu-bar-mode -1)
+
 (setq-default
 
  ;; Don't use compiled code if it's older package.
@@ -21,6 +24,9 @@
  ;; Don't autosave.
  auto-save-default nil
 
+ ;; Change intial scratch buffer messasge
+ initial-scratch-message ";; This buffer is for text that is not saved, and for Lisp evaluation.\n"
+
  ;; Allow commands to be run on minibuffers.
  enable-recursive-minibuffers t)
 
@@ -35,9 +41,6 @@
 
 ;; Display column number in modeline.
 (column-number-mode t)
-
-;; Disable Menu Bar.
-(menu-bar-mode -1)
 
 ;; Auto revert buffer.
 (global-auto-revert-mode t)
@@ -72,15 +75,6 @@
 
 ;; Use straight.el for use-package expressions
 (straight-use-package 'use-package)
-
-;; Define `open-emacs-config'
-(defun open-emacs-config ()
-  "Open Emacs.org file under ~/.emacs.d folder."
-  (interactive)
-  (find-file "~/.emacs.d/Emacs.org"))
-
-;; Bind `open-emacs-config' to 'C-c i'
-(global-set-key (kbd "C-c i") 'open-emacs-config)
 
 ;; Enable `doom-material' from `doom-themes'
 (use-package doom-themes
@@ -130,17 +124,53 @@
                      (projects . 5))
    dashboard-page-separator "\n\f\n"
    dashboard-set-init-info t
-   dashboard-set-footer t))
+   dashboard-set-footer t
+   dashboard-set-navigator t
+   dashboard-navigator-buttons
+   '(((nil "Tutorial" "Emacs Tutorial"
+           (lambda (&rest _) (help-with-tutorial))
+           'dashboard-navigator "[" "]")
+      (nil "About" "About Emacs"
+           (lambda (&rest _) (about-emacs))
+           'dashboard-navigator "[" "]")))))
 
 ;; Set `initial-buffer-choice' to load dashboard buffer
 (setq initial-buffer-choice
       (lambda () (get-buffer "*dashboard*")))
 
-;; Set `evil-set-initial-state' to `emacs' in `dashboard-mode'
+;; Setup `evil'
 (use-package evil
-  :requires dashboard
+  :init (setq evil-want-keybinding nil)
   :config
-  (evil-set-initial-state 'dashboard-mode 'emacs))
+  (evil-mode 1))
+
+;; Enable `evil-collection'
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+;; Escape from any state to `evil-normal-state'
+(use-package evil-escape
+  :config
+  (evil-escape-mode)
+  (setq-default evil-escape-delay 0.2))
+
+;; Setup `which-key'
+(use-package which-key
+  :config
+  (which-key-mode)
+  (setq which-key-lighter nil))
+
+;; Setup `general' for leader key bindings
+(use-package general
+  :config
+  (general-evil-setup)
+
+  (general-create-definer leader-key-def
+    :states 'normal
+    :keymaps 'override
+    :prefix "SPC"))
 
 ;; Setup `company' for code-completeion
 (use-package company
@@ -170,11 +200,6 @@
 
 (sp-local-pair 'prog-mode "{" nil :post-handlers '((create-nl-enter-sexp "RET")))
 
-;; Setup `evil'
-(use-package evil
-  :config
-  (evil-mode 1))
-
 ;; Setup `helm'
 (use-package helm
   :bind
@@ -185,12 +210,6 @@
    ("M-y" . helm-show-kill-ring))
   :config
   (helm-mode 1))
-
-;; Setup `which-key'
-(use-package which-key
-  :config
-  (which-key-mode)
-  (setq which-key-lighter nil))
 
 ;; Setup `projectile'
 (use-package projectile
@@ -217,12 +236,28 @@
   :init
   (helm-projectile-on))
 
+;; Define custom keybindings
+(leader-key-def
+  "p" '(:ignore t :which-key "projectile")
+  "pb" 'projectile-switch-to-buffer
+  "pc" 'projectile-compile-project
+  "pd" 'projectile-find-dir
+  "pD" 'projectile-dired
+  "pf" 'projectile-find-file
+  "pk" 'projectile-kill-buffers
+  "pL" 'projectile-install-project
+  "pp" 'projectile-switch-project
+  "pP" 'projectile-test-project
+  "pS" 'projectile-save-project-buffers
+  "pu" 'projectile-run-project
+  "pT" 'projectile-find-test-file)
+
 ;; Setup `treemacs'
 (use-package treemacs
   :bind
   (:map global-map
-        ("<f9> . treemacs")
-        ("C-c <f9> . treemacs-select-window"))
+        ("<f9>" . treemacs)
+        ("C-c <f9>" . treemacs-select-window))
   :config
   (setq treemacs-is-never-other-window t))
 
@@ -290,7 +325,53 @@
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
-;; Enable TAB in normal state of `evil-mode'
-(use-package evil
+;; Enable `evil-org'
+(use-package evil-org
+  :after org
+  :hook (((org-mode org-agenda-mode) . evil-org-mode)
+         (evil-org-mode . (lambda () (evil-org-set-key-theme
+                                      '(navigation todo insert textobjects additional)))))
   :config
-  (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle))
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+;; General keybindings.
+(leader-key-def
+  "SPC" 'helm-M-x)
+
+;; Define keybindings for file handlings
+(leader-key-def
+  "f" '(:ignore t :which-key "files")
+  "ff" 'helm-find-files
+  "fF" 'find-file-at-point
+  "fj" 'dired-jump
+  "fl" 'find-file-literally
+  "fr" 'helm-recentf
+  "fs" '(save-buffer :which-key "save-current-file")
+  "fS" '((lambda () (interactive) (save-some-buffers t nil)) :which-key "save-all-files")
+  "fy" '((lambda () (interactive) (message buffer-file-name)) :which-key "current-file-path"))
+
+;; Define some custom keybindings
+(leader-key-def
+  "fe" '(:ignore t :which-key "emacs-files")
+  "fee" '((lambda () (interactive) (find-file early-init-file)) :which-key "early-init-file")
+  "fei" '((lambda () (interactive) (find-file user-init-file)) :which-key "user-init-file")
+  "fed" '((lambda () (interactive) (find-file "~/.emacs.d/.emacs")) :which-key "dotemacs-file")
+  )
+
+;; Define buffer control bindings
+(leader-key-def
+  "b" '(:ignore t :which-key "buffers")
+  "bb" 'helm-mini
+  "bd" 'kill-current-buffer
+  "bh" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "open-home-buffer")
+  "bk" 'kill-buffer
+  "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "open-scratch-buffer"))
+
+;; Define keybindings for killing emacs
+(leader-key-def
+  "q" '(:ignore t :which-key "quit")
+  "qq" 'save-buffers-kill-emacs
+  "qQ" 'kill-emacs
+  "qs" '((lambda () (interactive) (save-buffers-kill-emacs t)) :which-key "auto-save-buffers-kill-emacs")
+  "qz" '(delete-frame :which-key "kill-emacs-frame"))

@@ -20,6 +20,9 @@
 
    #+begin_src emacs-lisp
 
+   ;; Disable Menu Bar.
+   (menu-bar-mode -1)
+
    (setq-default
 
     ;; Don't use compiled code if it's older package.
@@ -43,6 +46,9 @@
     ;; Don't autosave.
     auto-save-default nil
 
+    ;; Change intial scratch buffer messasge
+    initial-scratch-message ";; This buffer is for text that is not saved, and for Lisp evaluation.\n"
+
     ;; Allow commands to be run on minibuffers.
     enable-recursive-minibuffers t)
 
@@ -58,9 +64,6 @@
    ;; Display column number in modeline.
    (column-number-mode t)
 
-   ;; Disable Menu Bar.
-   (menu-bar-mode -1)
-
    ;; Auto revert buffer.
    (global-auto-revert-mode t)
 
@@ -71,7 +74,6 @@
    ;; Change default server socket directory.
    (require 'server)
    (setq server-socket-dir "~/.emacs.d")
-
    #+end_src
 
 *** Setup Package Manager
@@ -113,31 +115,6 @@
      (straight-use-package 'use-package)
 
      #+end_src
-
-*** Custom Commands
-
-    Define command =open-emacs-config=.
-
-    #+begin_src emacs-lisp
-
-    ;; Define `open-emacs-config'
-    (defun open-emacs-config ()
-      "Open Emacs.org file under ~/.emacs.d folder."
-      (interactive)
-      (find-file "~/.emacs.d/Emacs.org"))
-
-    #+end_src
-
-*** Custom Keybindings
-
-    Bind =C-c i= to =open-emacs-config= globally.
-
-    #+begin_src emacs-lisp
-
-    ;; Bind `open-emacs-config' to 'C-c i'
-    (global-set-key (kbd "C-c i") 'open-emacs-config)
-
-    #+end_src
 
 ** UI Customization
 *** Doom Themes
@@ -234,7 +211,15 @@
                          (projects . 5))
        dashboard-page-separator "\n\f\n"
        dashboard-set-init-info t
-       dashboard-set-footer t))
+       dashboard-set-footer t
+       dashboard-set-navigator t
+       dashboard-navigator-buttons
+       '(((nil "Tutorial" "Emacs Tutorial"
+               (lambda (&rest _) (help-with-tutorial))
+               'dashboard-navigator "[" "]")
+          (nil "About" "About Emacs"
+               (lambda (&rest _) (about-emacs))
+               'dashboard-navigator "[" "]")))))
 
     #+end_src
 
@@ -248,19 +233,79 @@
 
     #+end_src
 
-    Set =evil-set-initial-state= to =emacs= in =dashboard-mode=.
+** Accessibility
+*** Evil Mode
+
+    Enable vim like navigations using =evil=.
 
     #+begin_src emacs-lisp
 
-    ;; Set `evil-set-initial-state' to `emacs' in `dashboard-mode'
+    ;; Setup `evil'
     (use-package evil
-      :requires dashboard
+      :init (setq evil-want-keybinding nil)
       :config
-      (evil-set-initial-state 'dashboard-mode 'emacs))
+      (evil-mode 1))
 
     #+end_src
 
-** Accessibility
+    Enable =evil-collection=.
+
+    #+begin_src emacs-lisp
+
+    ;; Enable `evil-collection'
+    (use-package evil-collection
+      :after evil
+      :config
+      (evil-collection-init))
+
+    #+end_src
+
+*** Evil Escape
+
+    Escape from any state to =evil-normal-state= using =evil-escape=.
+
+    #+begin_src emacs-lisp
+
+    ;; Escape from any state to `evil-normal-state'
+    (use-package evil-escape
+      :config
+      (evil-escape-mode)
+      (setq-default evil-escape-delay 0.2))
+
+    #+end_src
+
+*** Which-Key Mode
+
+    Display keybindings while typing using =which-key=.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `which-key'
+    (use-package which-key
+      :config
+      (which-key-mode)
+      (setq which-key-lighter nil))
+
+    #+end_src
+
+*** Leader Key Binding
+
+    Simplify laeder key binding using =general=.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `general' for leader key bindings
+    (use-package general
+      :config
+      (general-evil-setup)
+
+      (general-create-definer leader-key-def
+        :states 'normal
+        :keymaps 'override
+        :prefix "SPC"))
+
+    #+end_src
+
 *** Code Completion
 
     Automatic code completion using =company=.
@@ -317,19 +362,6 @@
 
     #+end_src
 
-*** Evil Mode
-
-    Enable vim like navigations using =evil=.
-
-    #+begin_src emacs-lisp
-
-    ;; Setup `evil'
-    (use-package evil
-      :config
-      (evil-mode 1))
-
-    #+end_src
-
 *** Helm Mode
 
     Enable =helm= framework for incremental completion and selection narrowing.
@@ -346,20 +378,6 @@
        ("M-y" . helm-show-kill-ring))
       :config
       (helm-mode 1))
-
-    #+end_src
-
-*** Which-Key Mode
-
-    Display keybindings while typing using =which-key=.
-
-    #+begin_src emacs-lisp
-
-    ;; Setup `which-key'
-    (use-package which-key
-      :config
-      (which-key-mode)
-      (setq which-key-lighter nil))
 
     #+end_src
 
@@ -408,6 +426,28 @@
 
     #+end_src
 
+    Custom keybindings using =general=.
+
+    #+begin_src emacs-lisp
+
+    ;; Define custom keybindings
+    (leader-key-def
+      "p" '(:ignore t :which-key "projectile")
+      "pb" 'projectile-switch-to-buffer
+      "pc" 'projectile-compile-project
+      "pd" 'projectile-find-dir
+      "pD" 'projectile-dired
+      "pf" 'projectile-find-file
+      "pk" 'projectile-kill-buffers
+      "pL" 'projectile-install-project
+      "pp" 'projectile-switch-project
+      "pP" 'projectile-test-project
+      "pS" 'projectile-save-project-buffers
+      "pu" 'projectile-run-project
+      "pT" 'projectile-find-test-file)
+
+    #+end_src
+
 *** Treemacs
 
     Enable file tree view with easy project management using =treemacs=.
@@ -418,8 +458,8 @@
     (use-package treemacs
       :bind
       (:map global-map
-            ("<f9> . treemacs")
-            ("C-c <f9> . treemacs-select-window"))
+            ("<f9>" . treemacs)
+            ("C-c <f9>" . treemacs-select-window))
       :config
       (setq treemacs-is-never-other-window t))
 
@@ -558,15 +598,102 @@
 
      #+end_src
 
-*** Org Mode Keybindings
+*** Org Mode Evil Bindings
 
-     Enable =org-cycle= function using =TAB= key in =normal= state of =evil-mode=.
+     Enable evil bindings in =org-mode= using =evil-org=.
 
      #+begin_src emacs-lisp
 
-     ;; Enable TAB in normal state of `evil-mode'
-     (use-package evil
+     ;; Enable `evil-org'
+     (use-package evil-org
+       :after org
+       :hook (((org-mode org-agenda-mode) . evil-org-mode)
+              (evil-org-mode . (lambda () (evil-org-set-key-theme
+                                           '(navigation todo insert textobjects additional)))))
        :config
-       (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle))
+       (require 'evil-org-agenda)
+       (evil-org-agenda-set-keys))
 
      #+end_src
+
+** Key Bindings
+*** General
+
+    General Keybindings.
+
+    #+begin_src emacs-lisp
+
+    ;; General keybindings.
+    (leader-key-def
+      "SPC" 'helm-M-x)
+
+    #+end_src
+
+*** Files
+
+    Custom keybindings for file handlings.
+
+    #+begin_src emacs-lisp
+
+    ;; Define keybindings for file handlings
+    (leader-key-def
+      "f" '(:ignore t :which-key "files")
+      "ff" 'helm-find-files
+      "fF" 'find-file-at-point
+      "fj" 'dired-jump
+      "fl" 'find-file-literally
+      "fr" 'helm-recentf
+      "fs" '(save-buffer :which-key "save-current-file")
+      "fS" '((lambda () (interactive) (save-some-buffers t nil)) :which-key "save-all-files")
+      "fy" '((lambda () (interactive) (message buffer-file-name)) :which-key "current-file-path"))
+
+    #+end_src
+
+*** Emacs Files
+
+    Define custom keybindings for Emacs files.
+
+    #+begin_src emacs-lisp
+
+    ;; Define some custom keybindings
+    (leader-key-def
+      "fe" '(:ignore t :which-key "emacs-files")
+      "fee" '((lambda () (interactive) (find-file early-init-file)) :which-key "early-init-file")
+      "fei" '((lambda () (interactive) (find-file user-init-file)) :which-key "user-init-file")
+      "fed" '((lambda () (interactive) (find-file "~/.emacs.d/.emacs")) :which-key "dotemacs-file")
+      )
+
+    #+end_src
+
+*** Buffers
+
+    Define custom bindings for buffer control
+
+    #+begin_src emacs-lisp
+
+    ;; Define buffer control bindings
+    (leader-key-def
+      "b" '(:ignore t :which-key "buffers")
+      "bb" 'helm-mini
+      "bd" 'kill-current-buffer
+      "bh" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "open-home-buffer")
+      "bk" 'kill-buffer
+      "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "open-scratch-buffer"))
+
+    #+end_src
+
+*** Quit Emacs
+
+    Key bindings for quiting Emacs.
+
+    #+begin_src emacs-lisp
+
+    ;; Define keybindings for killing emacs
+    (leader-key-def
+      "q" '(:ignore t :which-key "quit")
+      "qq" 'save-buffers-kill-emacs
+      "qQ" 'kill-emacs
+      "qs" '((lambda () (interactive) (save-buffers-kill-emacs t)) :which-key "auto-save-buffers-kill-emacs")
+      "qz" '(delete-frame :which-key "kill-emacs-frame"))
+
+    #+end_src

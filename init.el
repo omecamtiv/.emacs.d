@@ -295,6 +295,12 @@
   "gr" 'magit-rebase
   "gs" 'magit-status)
 
+;; Setup `forge'
+(use-package forge
+  :after magit
+  :config
+  (setq auth-sources '("~/.authinfo.gpg")))
+
 ;; Enable `flycheck' for syntax checking
 (use-package flycheck
   :defer t

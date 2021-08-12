@@ -523,6 +523,20 @@
 
     #+end_src
 
+*** Forge
+
+    Setup =forge= to work with github in =magit=.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `forge'
+    (use-package forge
+      :after magit
+      :config
+      (setq auth-sources '("~/.authinfo.gpg")))
+
+    #+end_src
+
 ** Programming
 *** Syntax Checking
 

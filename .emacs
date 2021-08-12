@@ -8,8 +8,6 @@
 * Setup Emacs Config
 
   - Type =C-c C-c= to evaluate a specific source block.
-  - Type =C-c C-o= to open a link.
-  - Evaluate [[*Auto Tangle On Saving][Auto Tangle On Saving]].
   - Type =C-x C-s= to save the file.
   - Restart Emacs.
 
@@ -68,7 +66,7 @@
    (global-auto-revert-mode t)
 
    ;; Setting for increasing LSP performance.
-   (setq gc-cons-threshold 100000000
+   (setq gc-cons-threshold (* 50 1024 1024)
          read-process-output-max (* 1024 1024))
 
    ;; Change default server socket directory.
@@ -240,6 +238,9 @@
 
     #+begin_src emacs-lisp
 
+    ;; Disable `C-i' keybind in `evil-mode'
+    (defvar evil-want-C-i-jump nil)
+
     ;; Setup `evil'
     (use-package evil
       :init (setq evil-want-keybinding nil)
@@ -290,7 +291,7 @@
 
 *** Leader Key Binding
 
-    Simplify laeder key binding using =general=.
+    Simplify leader key binding using =general=.
 
     #+begin_src emacs-lisp
 
@@ -781,28 +782,6 @@
 
      #+end_src
 
-*** Auto Tangle On Saving
-
-     Tangle the whole file automatically on saving.
-
-     #+begin_src emacs-lisp
-
-     ;; Defining the function for auto tangle
-     (defun sn/org-babel-tangle-config ()
-       "Tangle only Emacs.org under ~/.emacs.d folder."
-       (when (string-equal (buffer-file-name)
-                           (expand-file-name "~/.emacs.d/.emacs"))
-         ;; Dynamic scoping
-         (let ((org-confirm-babel-evaluate nil))
-           (org-babel-tangle))))
-
-     ;; Tangle when the file is saved
-     (add-hook 'org-mode-hook
-               (lambda () (add-hook 'after-save-hook
-                                    #'sn/org-babel-tangle-config)))
-
-     #+end_src
-
 *** Structure Templates
 
      Enagle babel source block templates using =org-tempo=.
@@ -944,3 +923,14 @@
       "wW" 'evil-window-prev)
 
     #+end_src
+
+** Runtime Performance
+
+   Dial =gc-cons-threshold= back down.
+
+   #+begin_src emacs-lisp
+
+   ;; Dial the `gc-cons-threshold' back down to increase runtime performance
+   (setq gc-cons-threshold (* 2 1024 1024))
+
+   #+end_src

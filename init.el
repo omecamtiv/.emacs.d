@@ -46,7 +46,7 @@
 (global-auto-revert-mode t)
 
 ;; Setting for increasing LSP performance.
-(setq gc-cons-threshold 100000000
+(setq gc-cons-threshold (* 50 1024 1024)
       read-process-output-max (* 1024 1024))
 
 ;; Change default server socket directory.
@@ -137,6 +137,9 @@
 ;; Set `initial-buffer-choice' to load dashboard buffer
 (setq initial-buffer-choice
       (lambda () (get-buffer "*dashboard*")))
+
+;; Disable `C-i' keybind in `evil-mode'
+(defvar evil-want-C-i-jump nil)
 
 ;; Setup `evil'
 (use-package evil
@@ -416,20 +419,6 @@
  '((emacs-lisp . t)
    (restclient . t)))
 
-;; Defining the function for auto tangle
-(defun sn/org-babel-tangle-config ()
-  "Tangle only Emacs.org under ~/.emacs.d folder."
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.emacs.d/.emacs"))
-    ;; Dynamic scoping
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
-
-;; Tangle when the file is saved
-(add-hook 'org-mode-hook
-          (lambda () (add-hook 'after-save-hook
-                               #'sn/org-babel-tangle-config)))
-
 ;; Add templates for custom babel source block
 (require 'org-tempo)
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -506,3 +495,6 @@
   "wv" 'evil-window-vsplit
   "ww" 'evil-window-next
   "wW" 'evil-window-prev)
+
+;; Dial the `gc-cons-threshold' back down to increase runtime performance
+(setq gc-cons-threshold (* 2 1024 1024))

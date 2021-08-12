@@ -591,7 +591,7 @@
     ;; Define custom keybindigs for `lsp-mode'
     (leader-key-def
       "l" '(:ignore t :which-key "lsp")
-      "ld" 'lsp-find-definitions
+      "ld" 'lsp-find-definition
       "lr" 'lsp-find-references
       "ls" 'helm-imenu)
 
@@ -914,5 +914,33 @@
       "qQ" 'kill-emacs
       "qs" '((lambda () (interactive) (save-buffers-kill-emacs t)) :which-key "auto-save-buffers-kill-emacs")
       "qz" '(delete-frame :which-key "kill-emacs-frame"))
+
+    #+end_src
+
+*** Window
+
+    Custom keybindings for window control.
+
+    #+begin_src emacs-lisp
+
+    ;; Define keybindings for window control
+    (leader-key-def
+      "w" '(:ignore t :which-key "window")
+      "w=" 'balance-windows
+      "w_" 'evil-window-set-height
+      "wc" 'delete-other-windows
+      "wC" 'evil-window-delete
+      "wh" 'evil-window-left
+      "wH" 'evil-window-move-far-left
+      "wj" 'evil-window-down
+      "wJ" 'evil-window-move-very-bottom
+      "wk" 'evil-window-up
+      "wK" 'evil-window-move-very-top
+      "wl" 'evil-window-right
+      "wL" 'evil-window-move-far-right
+      "ws" 'evil-window-split
+      "wv" 'evil-window-vsplit
+      "ww" 'evil-window-next
+      "wW" 'evil-window-prev)
 
     #+end_src

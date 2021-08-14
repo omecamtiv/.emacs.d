@@ -66,7 +66,7 @@
    (global-auto-revert-mode t)
 
    ;; Setting for increasing LSP performance.
-   (setq gc-cons-threshold (* 50 1024 1024)
+   (setq gc-cons-threshold (* 100 1024 1024)
          read-process-output-max (* 1024 1024))
 
    ;; Change default server socket directory.
@@ -122,7 +122,7 @@
     ;; Enable `doom-material' from `doom-themes'
     (use-package doom-themes
       :config
-      (load-theme 'doom-material t))
+      (load-theme 'doom-dracula t))
 
     #+end_src
 
@@ -154,11 +154,9 @@
 
     #+begin_src emacs-lisp
 
-    ;; Enable `global-hl-line-mode' and change the color
+    ;; Enable `global-hl-line-mode'
     (global-hl-line-mode t)
-    (set-face-background 'hl-line "#37474f")
     (set-face-foreground 'highlight nil)
-    (set-face-attribute 'region nil :background "#1c262b")
 
     ;; Disable `hl-line' in `term-mode'
     (add-hook 'term-mode-hook
@@ -228,6 +226,22 @@
     ;; Set `initial-buffer-choice' to load dashboard buffer
     (setq initial-buffer-choice
           (lambda () (get-buffer "*dashboard*")))
+
+    #+end_src
+
+*** Compilation Mode Color
+
+    Enable =ansi-color= in =compilation-mode=.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `ansi-color' in `compilation-mode'
+    (use-package ansi-color
+      :config
+      (defun colorize-compilation-buffer ()
+        (when (eq major-mode 'compilation-mode)
+          (ansi-color-apply-on-region compilation-filter-start (point-max))))
+      :hook (compilation-filter . colorize-compilation-buffer))
 
     #+end_src
 
@@ -409,7 +423,7 @@
        'npm '("package.json")
        :project-file "package.json"
        :compile "npm install"
-       :run "npm start"
+       :run "npm run"
        :test "npm test"
        :test-suffix ".spec"))
 
@@ -472,7 +486,7 @@
 
     ;; Integrate `treemacs' with `evil'
     (use-package treemacs-evil
-      :requires (treemacs evil))
+      :after treemacs)
 
     #+end_src
 
@@ -647,9 +661,9 @@
 
     #+begin_src emacs-lisp
 
-    ;; Use `company-restclient' as `company-backed' for `restclient-mode'
+    ;; Use `company-restclient' as `company-backend' for `restclient-mode'
     (use-package company-restclient
-      :requires (restclient company)
+      :after company
       :config
       (add-to-list 'company-backends 'company-restclient))
 
@@ -937,14 +951,3 @@
       "wW" 'evil-window-prev)
 
     #+end_src
-
-** Runtime Performance
-
-   Dial =gc-cons-threshold= back down.
-
-   #+begin_src emacs-lisp
-
-   ;; Dial the `gc-cons-threshold' back down to increase runtime performance
-   (setq gc-cons-threshold (* 2 1024 1024))
-
-   #+end_src

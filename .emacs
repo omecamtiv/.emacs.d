@@ -138,7 +138,7 @@
 
    ;; Load `config.el' file
    (when (file-readable-p "~/.emacs.d/config.el")
-     (load-file "~/.emacs.d/.emacs"))
+     (load-file "~/.emacs.d/config.el"))
 
    #+end_src
 

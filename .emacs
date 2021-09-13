@@ -3,17 +3,200 @@
 #+title: EMACS CONFIGURATION USING ORG MODE
 
 #+STARTUP: content
-#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+
+* Default Early Init Settings
+  :PROPERTIES:
+  :header-args:emacs-lisp: :tangle off
+  :END:
+
+  - These settigs will be maintained in =early-init.el= file.
+  - Keep =:tangle off= unless otherwise required.
+
+** Disable Package Loading
+
+   Disable loading of =package.el= on startup.
+
+   #+begin_src emacs-lisp
+
+   ;; Disable package loading on startup
+   (setq package-enable-at-startup nil)
+
+   #+end_src
+
+** Custom Functions
+
+   Define custom functions for startup.
+
+   #+begin_src emacs-lisp
+
+   ;; Defining function `termux-p'
+   (defun termux-p ()
+     "Check whether Emacs running under Termux."
+     (string-match-p
+      (regexp-quote "/com.termux/")
+      (expand-file-name "~")))
+
+   #+end_src
+
+* Default Init Settings
+  :PROPERTIES:
+  :header-args:emacs-lisp: :tangle off
+  :END:
+
+  - These settings will be maintained in =init.el= file.
+  - Keep =:tangle off= unless otherwise required.
+
+** System Specific Settings
+
+    System specific ui settings.
+
+    #+begin_src emacs-lisp
+
+    ;; System specific UI settings
+    (unless (termux-p)
+      (scroll-bar-mode -1)
+      (tool-bar-mode -1)
+      (tooltip-mode -1)
+      (set-fringe-mode 10))
+
+    (menu-bar-mode -1)
+
+    (setq visible-bell t)
+
+    (if (display-graphic-p)
+        (setq browse-url-browser-function 'browse-url-chromium))
+
+    #+end_src
+
+** Setup Package Manager
+**** Bootstrap Straight Package Manager
+
+     We will use =straight.el= as our default package manager instead of =package.el=.
+
+     #+begin_src emacs-lisp
+
+     ;; Bootstrap straight.el
+     (defvar bootstrap-version)
+     (let ((bootstrap-file
+            (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+           (bootstrap-version 5))
+       (unless (file-exists-p bootstrap-file)
+         (with-current-buffer
+             (url-retrieve-synchronously
+              "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+              'silent 'inhibit-cookies)
+           (goto-char (point-max))
+           (eval-print-last-sexp)))
+       (load bootstrap-file nil 'nomessage))
+
+     ;; Always use straight.el to install packages
+     (setq straight-use-package-by-default t)
+
+     ;; Load helper package for commands like `straight-x-clean-unused-repos'
+     (require 'straight-x)
+
+     #+end_src
+
+**** Install Use-Package
+
+     Use =straight.el= for =use-package= expressions.
+
+     #+begin_src emacs-lisp
+
+     ;; Use straight.el for use-package expressions
+     (straight-use-package 'use-package)
+
+     #+end_src
+
+** Auto Tangle On Save
+
+    Enable automatic tangle on saving org file.
+
+    #+begin_src emacs-lisp
+
+    ;; Defining the function for auto tangle
+    (defun sn/org-babel-tangle-config ()
+      "Tangle only `.emacs' under ~/.emacs.d folder."
+      (when (string-equal (buffer-file-name)
+                          (expand-file-name "~/.emacs.d/.emacs"))
+        ;; Dynamic scoping
+        (let ((org-confirm-babel-evaluate nil))
+          (org-babel-tangle))))
+
+    ;; Tangle when the file is saved
+    (add-hook 'org-mode-hook
+              (lambda () (add-hook 'after-save-hook
+                                   #'sn/org-babel-tangle-config)))
+
+    #+end_src
+
+** Load Config File
+
+   Load =config.el= file.
+
+   #+begin_src emacs-lisp
+
+   ;; Load `config.el' file
+   (unless (file-readable-p "~/.emacs.d/config.el")
+     (org-babel-tangle-file "~/.emacs.d/.emacs"))
+
+   (load-file "~/.emacs.d/config.el")
+
+   #+end_src
 
 * Setup Emacs Config
+  :PROPERTIES:
+  :header-args:emacs-lisp: :tangle ./config.el
+  :END:
 
-  - Type =C-c C-c= to evaluate a specific source block.
-  - Type =C-x C-s= to save the file.
-  - Restart Emacs.
+  - This is the main configuration section.
+  - All code blocks will be tangled to =config.el=.
+  - Save this file to auto update =config.el= file.
 
   *Emacs will take some time to load for the first time.*
 
 ** General Config
+*** Fira Code Ligature Support
+
+    Enable =Fira Code= ligature support using =composition character table=.
+
+    #+begin_src emacs-lisp
+
+    ;; Enable Fira Code ligature support
+    (when (window-system)
+      (set-frame-font "Fira Code"))
+    (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
+                   (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
+                   (36 . ".\\(?:>\\)")
+                   (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
+                   (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
+                   (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
+                   (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
+                   (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
+                   (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+                   (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
+                   (48 . ".\\(?:x[a-zA-Z]\\)")
+                   (58 . ".\\(?:::\\|[:=]\\)")
+                   (59 . ".\\(?:;;\\|;\\)")
+                   (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
+                   (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
+                   (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
+                   (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
+                   (91 . ".\\(?:]\\)")
+                   (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
+                   (94 . ".\\(?:=\\)")
+                   (119 . ".\\(?:ww\\)")
+                   (123 . ".\\(?:-\\)")
+                   (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
+                   (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
+                   )
+                 ))
+      (dolist (char-regexp alist)
+        (set-char-table-range composition-function-table (car char-regexp)
+                              `([,(cdr char-regexp) 0 font-shape-gstring]))))
+
+    #+end_src
+
 *** Better Defaults For Emacs
 
    #+begin_src emacs-lisp
@@ -73,46 +256,6 @@
    (require 'server)
    (setq server-socket-dir "~/.emacs.d")
    #+end_src
-
-*** Setup Package Manager
-**** Bootstrap Straight Package Manager
-
-     We will use =straight.el= as our default package manager instead of =package.el=.
-
-     #+begin_src emacs-lisp
-
-     ;; Bootstrap straight.el
-     (defvar bootstrap-version)
-     (let ((bootstrap-file
-            (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-           (bootstrap-version 5))
-       (unless (file-exists-p bootstrap-file)
-         (with-current-buffer
-             (url-retrieve-synchronously
-              "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-              'silent 'inhibit-cookies)
-           (goto-char (point-max))
-           (eval-print-last-sexp)))
-       (load bootstrap-file nil 'nomessage))
-
-     ;; Always use straight.el to install packages
-     (setq straight-use-package-by-default t)
-
-     ;; Load helper package for commands like `straight-x-clean-unused-repos'
-     (require 'straight-x)
-
-     #+end_src
-
-**** Install Use-Package
-
-     Use =straight.el= for =use-package= expressions.
-
-     #+begin_src emacs-lisp
-
-     ;; Use straight.el for use-package expressions
-     (straight-use-package 'use-package)
-
-     #+end_src
 
 ** UI Customization
 *** Doom Themes
@@ -199,8 +342,11 @@
     (use-package dashboard
       :config
       (dashboard-setup-startup-hook)
+      (if (display-graphic-p)
+          (setq
+           dashboard-startup-banner 'logo
+           dashboard-set-heading-icons t))
       (setq
-       dashboard-startup-banner 3
        dashboard-show-shortcuts nil
        dashboard-items '((recents . 5)
                          (bookmarks . 5)
@@ -210,7 +356,10 @@
        dashboard-set-footer t
        dashboard-set-navigator t
        dashboard-navigator-buttons
-       '(((nil "Tutorial" "Emacs Tutorial"
+       '(((nil "GitHub" "GitHub Account"
+               (lambda (&rest _) (browse-url "https://github.com/omecamtiv"))
+               'dashboard-navigator "[" "]")
+          (nil "Tutorial" "Emacs Tutorial"
                (lambda (&rest _) (help-with-tutorial))
                'dashboard-navigator "[" "]")
           (nil "About" "About Emacs"
@@ -393,6 +542,17 @@
        ("M-y" . helm-show-kill-ring))
       :config
       (helm-mode 1))
+
+    #+end_src
+
+    Disable =Fira Code Ligatures= in =helm-mode=.
+
+    #+begin_src emacs-lisp
+
+    ;; Disable Fira Code Ligatures in `helm-mode'
+    (add-hook 'helm-major-mode-hook
+              (lambda ()
+                (setq auto-composition-mode nil)))
 
     #+end_src
 
@@ -741,9 +901,7 @@
     ;; Customize `org-ellipsis'
     (use-package org
       :config
-      (setq
-       org-ellipsis " "
-       org-hide-emphasis-markers t))
+      (setq org-hide-emphasis-markers t))
 
     #+end_src
 
@@ -756,9 +914,7 @@
      ;; Setup `org-bullets'
      (use-package org-bullets
        :after org
-       :hook (org-mode . org-bullets-mode)
-       :custom
-       (org-bullets-bullet-list '("")))
+       :hook (org-mode . org-bullets-mode))
 
      #+end_src
 

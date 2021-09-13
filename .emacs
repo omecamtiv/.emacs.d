@@ -343,7 +343,8 @@
       (if (display-graphic-p)
           (setq
            dashboard-startup-banner 'logo
-           dashboard-set-heading-icons t))
+           dashboard-set-heading-icons t)
+        (setq dashboard-startup-banner 3))
       (setq
        dashboard-show-shortcuts nil
        dashboard-items '((recents . 5)
@@ -706,6 +707,19 @@
       :after magit
       :config
       (setq auth-sources '("~/.authinfo.gpg")))
+
+    #+end_src
+
+*** Browse URL
+
+    Configure =browse-url= to use system browser.
+
+    #+begin_src emacs-lisp
+
+    ;; Use system browser to browse url
+    (if (termux-p)
+        (setq browse-url-browser-function 'browse-url-xdg-open)
+      (setq browse-url-browser-function 'browse-url-chromium))
 
     #+end_src
 

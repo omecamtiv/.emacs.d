@@ -137,10 +137,8 @@
    #+begin_src emacs-lisp
 
    ;; Load `config.el' file
-   (unless (file-readable-p "~/.emacs.d/config.el")
-     (org-babel-tangle-file "~/.emacs.d/.emacs"))
-
-   (load-file "~/.emacs.d/config.el")
+   (when (file-readable-p "~/.emacs.d/config.el")
+     (load-file "~/.emacs.d/.emacs"))
 
    #+end_src
 

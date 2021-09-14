@@ -5,11 +5,11 @@
 
 * Default Early Init Settings
   :PROPERTIES:
-  :header-args:emacs-lisp: :tangle off
+  :header-args:emacs-lisp: :tangle no
   :END:
 
   - These settigs will be maintained in =early-init.el= file.
-  - Keep =:tangle off= unless otherwise required.
+  - Keep =:tangle no= unless otherwise required.
 
 ** Disable Package Loading
 
@@ -45,11 +45,11 @@
 
 * Default Init Settings
   :PROPERTIES:
-  :header-args:emacs-lisp: :tangle off
+  :header-args:emacs-lisp: :tangle no
   :END:
 
   - These settings will be maintained in =init.el= file.
-  - Keep =:tangle off= unless otherwise required.
+  - Keep =:tangle no= unless otherwise required.
 
 ** System Specific Settings
 

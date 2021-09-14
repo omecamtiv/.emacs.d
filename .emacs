@@ -171,7 +171,7 @@
                    (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
                    (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
                    (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
-                   (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+                   ;; (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
                    (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
                    (48 . ".\\(?:x[a-zA-Z]\\)")
                    (58 . ".\\(?:::\\|[:=]\\)")
@@ -192,6 +192,22 @@
       (dolist (char-regexp alist)
         (set-char-table-range composition-function-table (car char-regexp)
                               `([,(cdr char-regexp) 0 font-shape-gstring]))))
+
+    #+end_src
+
+    Disable =Fira Code= ligatures in =helm-mode= and =ediff-mode=.
+
+    #+begin_src emacs-lisp
+
+    ;; Disable ligatures in `helm-mode'
+    (add-hook 'helm-major-mode-hook
+              (lambda ()
+                (setq auto-composition-mode nil)))
+
+    ;; Disable ligatures in `ediff-mode'
+    (add-hook 'ediff-mode-hook
+              (lambda ()
+                (setq auto-composition-mode nil)))
 
     #+end_src
 
@@ -541,17 +557,6 @@
        ("M-y" . helm-show-kill-ring))
       :config
       (helm-mode 1))
-
-    #+end_src
-
-    Disable =Fira Code Ligatures= in =helm-mode=.
-
-    #+begin_src emacs-lisp
-
-    ;; Disable Fira Code Ligatures in `helm-mode'
-    (add-hook 'helm-major-mode-hook
-              (lambda ()
-                (setq auto-composition-mode nil)))
 
     #+end_src
 

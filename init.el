@@ -37,9 +37,9 @@
 
 ;; Defining the function for auto tangle
 (defun sn/org-babel-tangle-config ()
-  "Tangle only `.emacs' under ~/.emacs.d folder."
+  "Tangle only `emacs.org' under ~/.emacs.d folder."
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.emacs.d/.emacs"))
+                      (expand-file-name "~/.emacs.d/emacs.org"))
     ;; Dynamic scoping
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
@@ -50,5 +50,5 @@
                                #'sn/org-babel-tangle-config)))
 
 ;; Load `config.el' file
-(when (file-readable-p "~/.emacs.d/config.el")
-  (load-file "~/.emacs.d/config.el"))
+(when (file-readable-p "~/.emacs.d/.emacs")
+  (load-file "~/.emacs.d/.emacs"))

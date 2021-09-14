@@ -2,6 +2,6 @@
 
 !README.md
 !.gitignore
-!.emacs
+!emacs.org
 !init.el
 !early-init.el

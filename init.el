@@ -50,5 +50,5 @@
                                #'sn/org-babel-tangle-config)))
 
 ;; Load `config.el' file
-(when (file-readable-p "~/.emacs.d/.emacs")
-  (load-file "~/.emacs.d/.emacs"))
+(when (file-readable-p emacs-dot-file)
+  (load-file emacs-dot-file))

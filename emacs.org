@@ -5,7 +5,7 @@
 
 * Default Early Init Settings
   :PROPERTIES:
-  :header-args:emacs-lisp: :tangle no
+  :header-args:emacs-lisp: :tangle ./early-init.el
   :END:
 
   - These settigs will be maintained in =early-init.el= file.
@@ -63,7 +63,7 @@
 
 * Default Init Settings
   :PROPERTIES:
-  :header-args:emacs-lisp: :tangle no
+  :header-args:emacs-lisp: :tangle ./init.el
   :END:
 
   - These settings will be maintained in =init.el= file.

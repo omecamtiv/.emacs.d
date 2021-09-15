@@ -1,7 +1,8 @@
-*
+/*
 
-!README.md
 !.gitignore
+!README.md
 !emacs.org
 !init.el
 !early-init.el
+!/core

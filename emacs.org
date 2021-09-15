@@ -3,9 +3,9 @@
 
 #+STARTUP: content
 
-* Default Early Init Settings
+* Early Init File
   :PROPERTIES:
-  :header-args:emacs-lisp: :tangle ./early-init.el
+  :header-args:emacs-lisp: :tangle no
   :END:
 
   - These settigs will be maintained in =early-init.el= file.
@@ -22,48 +22,21 @@
 
    #+end_src
 
-** Custom Functions
+** Load Emacs Core
 
-   Define custom functions for startup.
-
-   #+begin_src emacs-lisp
-
-   ;; Defining function `termux-p'
-   (defun termux-p ()
-     "Check whether Emacs running under Termux."
-     (string-match-p
-      (regexp-quote "/com.termux/")
-      (expand-file-name "~")))
-
-   ;; Defining function `transparency'
-   (defun transparency (value)
-     "Sets the transparency of the frame window. 0=transparent/100=opaque"
-     (interactive "nTransparency Value 0 - 100 opaque: ")
-     (set-frame-parameter (selected-frame) 'alpha value))
-
-   #+end_src
-
-** Custom Variables
-
-   Define custom variables.
+   Load core of Emacs.
 
    #+begin_src emacs-lisp
 
-   ;; Define `emacs-org-file'
-   (defconst emacs-org-file
-     (concat user-emacs-directory "emacs.org")
-     "Path to `emacs.org' file.")
-
-   ;; Define `emacs-dot-file'
-   (defconst emacs-dot-file
-     (concat user-emacs-directory ".emacs")
-     "Path to `.emacs' file")
+   ;; Load the core of Emacs
+   (load (expand-file-name
+          (concat use-emacs-directory "core")))
 
    #+end_src
 
-* Default Init Settings
+* Init File
   :PROPERTIES:
-  :header-args:emacs-lisp: :tangle ./init.el
+  :header-args:emacs-lisp: :tangle no
   :END:
 
   - These settings will be maintained in =init.el= file.
@@ -91,8 +64,107 @@
 
     #+end_src
 
-** Setup Package Manager
-**** Bootstrap Straight Package Manager
+** Auto Tangle On Save
+
+    Enable automatic tangle on saving org file.
+
+    #+begin_src emacs-lisp
+
+    ;; Defining the function for auto tangle
+    (defun sn/org-babel-tangle-config ()
+      "Tangle only `emacs.org' under ~/.emacs.d folder."
+      (when (string-equal (buffer-file-name)
+                          (expand-file-name "~/.emacs.d/emacs.org"))
+        ;; Dynamic scoping
+        (let ((org-confirm-babel-evaluate nil))
+          (org-babel-tangle))))
+
+    ;; Tangle when the file is saved
+    (add-hook 'org-mode-hook
+              (lambda () (add-hook 'after-save-hook
+                                   #'sn/org-babel-tangle-config)))
+
+    #+end_src
+
+** Load Emacs
+
+   Load Emacs.
+
+   #+begin_src emacs-lisp
+
+   ;; Load Emacs
+   (initialize-core)
+   (load-modules)
+
+   #+end_src
+
+* Emacs Core
+** Core
+   :PROPERTIES:
+   :header-args:emacs-lisp: :tangle no
+   :END:
+
+*** Custom Variables
+
+    Define custom variables.
+
+    #+begin_src emacs-lisp
+
+    ;; Define `emacs-org-file'
+    (defconst emacs-org-file
+      (concat user-emacs-directory "emacs.org")
+      "Path to `emacs.org' file.")
+
+    ;; Define `emacs-core-directory'
+    (defconst emacs-core-directory
+      (concat user-emacs-directory "core/"))
+
+    #+end_src
+
+*** Custom Functions
+
+    Define custom functions for startup.
+
+    #+begin_src emacs-lisp
+
+    ;; Defining function `termux-p'
+    (defun termux-p ()
+      "Check whether Emacs running under Termux."
+      (string-match-p
+       (regexp-quote "/com.termux/")
+       (expand-file-name "~")))
+
+    ;; Defining function `transparency'
+    (defun transparency (value)
+      "Sets the transparency of the frame window. 0=transparent/100=opaque"
+      (interactive "nTransparency Value 0 - 100 opaque: ")
+      (set-frame-parameter (selected-frame) 'alpha value))
+
+    ;; Define function `initialize-core'
+    (defun initialize-core ()
+      "Load the all core files."
+      (dolist (file '("core-package"
+                      "core-lib"
+                      "core-modules"
+                      "core-bindings"))
+        (load (expand-file-name
+               (concat emacs-core-directory file)))
+        (message "Loaded config file: %s" file)))
+
+    ;; Define function `load-modules'
+    (defun load-modules ()
+      "Load the modules for Emacs"
+      (load (expand-file-name
+             (concat user-emacs-directory "modules"))))
+
+    #+end_src
+
+** Core Package Manager
+   :PROPERTIES:
+   :header-args:emacs-lisp: :tangle no
+   :END:
+
+*** Bootstrap Straight Package Manager
 
      We will use =straight.el= as our default package manager instead of =package.el=.
 
@@ -120,7 +192,7 @@
 
      #+end_src
 
-**** Install Use-Package
+*** Install Use-Package
 
      Use =straight.el= for =use-package= expressions.
 
@@ -131,52 +203,11 @@
 
      #+end_src
 
-** Auto Tangle On Save
+** Core Library
+   :PROPERTIES:
+   :header-args:emacs-lisp: :tangle no
+   :END:
 
-    Enable automatic tangle on saving org file.
-
-    #+begin_src emacs-lisp
-
-    ;; Defining the function for auto tangle
-    (defun sn/org-babel-tangle-config ()
-      "Tangle only `emacs.org' under ~/.emacs.d folder."
-      (when (string-equal (buffer-file-name)
-                          (expand-file-name "~/.emacs.d/emacs.org"))
-        ;; Dynamic scoping
-        (let ((org-confirm-babel-evaluate nil))
-          (org-babel-tangle))))
-
-    ;; Tangle when the file is saved
-    (add-hook 'org-mode-hook
-              (lambda () (add-hook 'after-save-hook
-                                   #'sn/org-babel-tangle-config)))
-
-    #+end_src
-
-** Load Config File
-
-   Load =.emacs= file.
-
-   #+begin_src emacs-lisp
-
-   ;; Load `config.el' file
-   (when (file-readable-p emacs-dot-file)
-     (load-file emacs-dot-file))
-
-   #+end_src
-
-* Setup Emacs Config
-  :PROPERTIES:
-  :header-args:emacs-lisp: :tangle ./.emacs
-  :END:
-
-  - This is the main configuration section.
-  - All code blocks will be tangled to =.emacs=.
-  - Save this file to auto update =.emacs= file.
-
-  *Emacs will take some time to load for the first time.*
-
-** General Config
 *** Fira Code Ligature Support
 
     Enable =Fira Code= ligature support using =composition character table=.
@@ -294,7 +325,11 @@
    (setq server-socket-dir user-emacs-directory)
    #+end_src
 
-** UI Customization
+** Core Modules
+   :PROPERTIES:
+   :header-args:emacs-lisp: :tangle no
+   :END:
+
 *** Doom Themes
 
     #+begin_src emacs-lisp
@@ -325,53 +360,6 @@
        doom-modeline-major-mode-color-icon t
        doom-modeline-buffer-state-icon t
        doom-modeline-buffer-modification-icon t))
-
-    #+end_src
-
-*** Transparent Frame
-
-    Set the current =Emacs= frame transparent.
-
-    #+begin_src emacs-lisp
-
-    ;; Enable transparency od current frame.
-    (when (display-graphic-p)
-      (transparency 85))
-
-    #+end_src
-
-*** Display Line Numbers
-
-    #+begin_src emacs-lisp
-
-    ;; Enable `display-line-numbers-mode' in `prog-mode'
-    (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-
-    #+end_src
-
-*** Enable Current Line Highlight
-
-    #+begin_src emacs-lisp
-
-    ;; Enable `global-hl-line-mode'
-    (global-hl-line-mode t)
-    (set-face-foreground 'highlight nil)
-
-    ;; Disable `hl-line' in `term-mode'
-    (add-hook 'term-mode-hook
-              (lambda () (setq-local global-hl-line-mode nil)))
-
-    #+end_src
-
-*** Colorify Parenthesis
-
-    Enable colorful parenthesis using =rainbow-delimiters=.
-
-    #+begin_src emacs-lisp
-
-    ;; Enable `rainbow-delimiters'
-    (use-package rainbow-delimiters
-      :hook (prog-mode . rainbow-delimiters-mode))
 
     #+end_src
 
@@ -451,7 +439,6 @@
 
     #+end_src
 
-** Accessibility
 *** Evil Mode
 
     Enable vim like navigations using =evil=.
@@ -527,6 +514,193 @@
 
     #+end_src
 
+*** Browse URL
+
+    Configure =browse-url= to use system browser.
+
+    #+begin_src emacs-lisp
+
+    ;; Use system browser to browse url
+    (if (termux-p)
+        (setq browse-url-browser-function 'browse-url-xdg-open)
+      (setq browse-url-browser-function 'browse-url-chromium))
+
+    #+end_src
+
+** Key Bindings
+   :PROPERTIES:
+   :header-args:emacs-lisp: :tangle no
+   :END:
+
+*** General
+
+    General Keybindings.
+
+    #+begin_src emacs-lisp
+
+    ;; General keybindings.
+    (leader-key-def
+      "SPC" 'helm-M-x)
+
+    #+end_src
+
+*** Files
+
+    Custom keybindings for file handlings.
+
+    #+begin_src emacs-lisp
+
+    ;; Define keybindings for file handlings
+    (leader-key-def
+      "f" '(:ignore t :which-key "files")
+      "ff" 'helm-find-files
+      "fF" 'find-file-at-point
+      "fj" 'dired-jump
+      "fl" 'find-file-literally
+      "fr" 'helm-recentf
+      "fs" '(save-buffer :which-key "save-current-file")
+      "fS" '((lambda () (interactive) (save-some-buffers t nil)) :which-key "save-all-files")
+      "fy" '((lambda () (interactive) (message buffer-file-name)) :which-key "current-file-path"))
+
+    #+end_src
+
+*** Emacs Files
+
+    Define custom keybindings for Emacs files.
+
+    #+begin_src emacs-lisp
+
+    ;; Define some custom keybindings
+    (leader-key-def
+      "fe" '(:ignore t :which-key "emacs-files")
+      "fee" '((lambda () (interactive) (find-file early-init-file)) :which-key "early-init-file")
+      "fei" '((lambda () (interactive) (find-file user-init-file)) :which-key "user-init-file")
+      "feo" '((lambda () (interactive) (find-file emacs-org-file)) :which-key "emacs-org-file"))
+
+    #+end_src
+
+*** Buffers
+
+    Define custom bindings for buffer control
+
+    #+begin_src emacs-lisp
+
+    ;; Define buffer control bindings
+    (leader-key-def
+      "b" '(:ignore t :which-key "buffers")
+      "bb" 'helm-mini
+      "bd" 'kill-current-buffer
+      "bh" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "open-home-buffer")
+      "bk" 'kill-buffer
+      "br" 'revert-buffer
+      "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "open-scratch-buffer"))
+
+    #+end_src
+
+*** Quit Emacs
+
+    Key bindings for quiting Emacs.
+
+    #+begin_src emacs-lisp
+
+    ;; Define keybindings for killing emacs
+    (leader-key-def
+      "q" '(:ignore t :which-key "quit")
+      "qq" 'save-buffers-kill-emacs
+      "qQ" 'kill-emacs
+      "qs" '((lambda () (interactive) (save-buffers-kill-emacs t)) :which-key "auto-save-buffers-kill-emacs")
+      "qz" '(delete-frame :which-key "kill-emacs-frame"))
+
+    #+end_src
+
+*** Window
+
+    Custom keybindings for window control.
+
+    #+begin_src emacs-lisp
+
+    ;; Define keybindings for window control
+    (leader-key-def
+      "w" '(:ignore t :which-key "window")
+      "w=" 'balance-windows
+      "w_" 'evil-window-set-height
+      "wc" 'delete-other-windows
+      "wC" 'evil-window-delete
+      "wh" 'evil-window-left
+      "wH" 'evil-window-move-far-left
+      "wj" 'evil-window-down
+      "wJ" 'evil-window-move-very-bottom
+      "wk" 'evil-window-up
+      "wK" 'evil-window-move-very-top
+      "wl" 'evil-window-right
+      "wL" 'evil-window-move-far-right
+      "ws" 'evil-window-split
+      "wv" 'evil-window-vsplit
+      "ww" 'evil-window-next
+      "wW" 'evil-window-prev)
+
+    #+end_src
+
+* Emacs Modules
+  :PROPERTIES:
+  :header-args:emacs-lisp: :tangle ./modules.el
+  :END:
+
+  - This is the main configuration section.
+  - All code blocks will be tangled to =.emacs=.
+  - Save this file to auto update =.emacs= file.
+
+  *Emacs will take some time to load for the first time.*
+
+** UI Customization
+*** Transparent Frame
+
+    Set the current =Emacs= frame transparent.
+
+    #+begin_src emacs-lisp
+
+    ;; Enable transparency od current frame.
+    (when (display-graphic-p)
+      (transparency 85))
+
+    #+end_src
+
+*** Display Line Numbers
+
+    #+begin_src emacs-lisp
+
+    ;; Enable `display-line-numbers-mode' in `prog-mode'
+    (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+
+    #+end_src
+
+*** Enable Current Line Highlight
+
+    #+begin_src emacs-lisp
+
+    ;; Enable `global-hl-line-mode'
+    (global-hl-line-mode t)
+    (set-face-foreground 'highlight nil)
+
+    ;; Disable `hl-line' in `term-mode'
+    (add-hook 'term-mode-hook
+              (lambda () (setq-local global-hl-line-mode nil)))
+
+    #+end_src
+
+*** Colorify Parenthesis
+
+    Enable colorful parenthesis using =rainbow-delimiters=.
+
+    #+begin_src emacs-lisp
+
+    ;; Enable `rainbow-delimiters'
+    (use-package rainbow-delimiters
+      :hook (prog-mode . rainbow-delimiters-mode))
+
+    #+end_src
+
+** Accessibility
 *** Code Completion
 
     Automatic code completion using =company=.
@@ -763,19 +937,6 @@
       :after magit
       :config
       (setq auth-sources '("~/.authinfo.gpg")))
-
-    #+end_src
-
-*** Browse URL
-
-    Configure =browse-url= to use system browser.
-
-    #+begin_src emacs-lisp
-
-    ;; Use system browser to browse url
-    (if (termux-p)
-        (setq browse-url-browser-function 'browse-url-xdg-open)
-      (setq browse-url-browser-function 'browse-url-chromium))
 
     #+end_src
 
@@ -1065,116 +1226,6 @@
        (evil-org-agenda-set-keys))
 
      #+end_src
-
-** Key Bindings
-*** General
-
-    General Keybindings.
-
-    #+begin_src emacs-lisp
-
-    ;; General keybindings.
-    (leader-key-def
-      "SPC" 'helm-M-x)
-
-    #+end_src
-
-*** Files
-
-    Custom keybindings for file handlings.
-
-    #+begin_src emacs-lisp
-
-    ;; Define keybindings for file handlings
-    (leader-key-def
-      "f" '(:ignore t :which-key "files")
-      "ff" 'helm-find-files
-      "fF" 'find-file-at-point
-      "fj" 'dired-jump
-      "fl" 'find-file-literally
-      "fr" 'helm-recentf
-      "fs" '(save-buffer :which-key "save-current-file")
-      "fS" '((lambda () (interactive) (save-some-buffers t nil)) :which-key "save-all-files")
-      "fy" '((lambda () (interactive) (message buffer-file-name)) :which-key "current-file-path"))
-
-    #+end_src
-
-*** Emacs Files
-
-    Define custom keybindings for Emacs files.
-
-    #+begin_src emacs-lisp
-
-    ;; Define some custom keybindings
-    (leader-key-def
-      "fe" '(:ignore t :which-key "emacs-files")
-      "fee" '((lambda () (interactive) (find-file early-init-file)) :which-key "early-init-file")
-      "fei" '((lambda () (interactive) (find-file user-init-file)) :which-key "user-init-file")
-      "fed" '((lambda () (interactive) (find-file emacs-dot-file)) :which-key "emacs-dot-file")
-      "feo" '((lambda () (interactive) (find-file emacs-org-file)) :which-key "emacs-org-file"))
-
-    #+end_src
-
-*** Buffers
-
-    Define custom bindings for buffer control
-
-    #+begin_src emacs-lisp
-
-    ;; Define buffer control bindings
-    (leader-key-def
-      "b" '(:ignore t :which-key "buffers")
-      "bb" 'helm-mini
-      "bd" 'kill-current-buffer
-      "bh" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "open-home-buffer")
-      "bk" 'kill-buffer
-      "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "open-scratch-buffer"))
-
-    #+end_src
-
-*** Quit Emacs
-
-    Key bindings for quiting Emacs.
-
-    #+begin_src emacs-lisp
-
-    ;; Define keybindings for killing emacs
-    (leader-key-def
-      "q" '(:ignore t :which-key "quit")
-      "qq" 'save-buffers-kill-emacs
-      "qQ" 'kill-emacs
-      "qs" '((lambda () (interactive) (save-buffers-kill-emacs t)) :which-key "auto-save-buffers-kill-emacs")
-      "qz" '(delete-frame :which-key "kill-emacs-frame"))
-
-    #+end_src
-
-*** Window
-
-    Custom keybindings for window control.
-
-    #+begin_src emacs-lisp
-
-    ;; Define keybindings for window control
-    (leader-key-def
-      "w" '(:ignore t :which-key "window")
-      "w=" 'balance-windows
-      "w_" 'evil-window-set-height
-      "wc" 'delete-other-windows
-      "wC" 'evil-window-delete
-      "wh" 'evil-window-left
-      "wH" 'evil-window-move-far-left
-      "wj" 'evil-window-down
-      "wJ" 'evil-window-move-very-bottom
-      "wk" 'evil-window-up
-      "wK" 'evil-window-move-very-top
-      "wl" 'evil-window-right
-      "wL" 'evil-window-move-far-right
-      "ws" 'evil-window-split
-      "wv" 'evil-window-vsplit
-      "ww" 'evil-window-next
-      "wW" 'evil-window-prev)
-
-    #+end_src
 
 ** Terminals
 *** Term Mode

@@ -3,4 +3,4 @@
 
 ;; Load the core of Emacs
 (load (expand-file-name
-       (concat user-emacs-directory "core")))
+       (concat user-emacs-directory "core/core")))

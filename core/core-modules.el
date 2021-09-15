@@ -92,6 +92,17 @@
   (which-key-mode)
   (setq which-key-lighter nil))
 
+;; Setup `helm'
+(use-package helm
+  :bind
+  (("M-x" . helm-M-x)
+   ("C-x b" . helm-buffers-list)
+   ("C-x C-f" . helm-find-files)
+   ("C-x r b" . helm-bookmarks)
+   ("M-y" . helm-show-kill-ring))
+  :config
+  (helm-mode 1))
+
 ;; Setup `general' for leader key bindings
 (use-package general
   :config

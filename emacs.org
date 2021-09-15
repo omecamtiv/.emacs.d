@@ -496,6 +496,25 @@
 
     #+end_src
 
+*** Helm Mode
+
+    Enable =helm= framework for incremental completion and selection narrowing.
+
+    #+begin_src emacs-lisp
+
+    ;; Setup `helm'
+    (use-package helm
+      :bind
+      (("M-x" . helm-M-x)
+       ("C-x b" . helm-buffers-list)
+       ("C-x C-f" . helm-find-files)
+       ("C-x r b" . helm-bookmarks)
+       ("M-y" . helm-show-kill-ring))
+      :config
+      (helm-mode 1))
+
+    #+end_src
+
 *** Leader Key Binding
 
     Simplify leader key binding using =general=.
@@ -754,25 +773,6 @@
       (indent-according-to-mode))
 
     (sp-local-pair 'prog-mode "{" nil :post-handlers '((create-nl-enter-sexp "RET")))
-
-    #+end_src
-
-*** Helm Mode
-
-    Enable =helm= framework for incremental completion and selection narrowing.
-
-    #+begin_src emacs-lisp
-
-    ;; Setup `helm'
-    (use-package helm
-      :bind
-      (("M-x" . helm-M-x)
-       ("C-x b" . helm-buffers-list)
-       ("C-x C-f" . helm-find-files)
-       ("C-x r b" . helm-bookmarks)
-       ("M-y" . helm-show-kill-ring))
-      :config
-      (helm-mode 1))
 
     #+end_src
 

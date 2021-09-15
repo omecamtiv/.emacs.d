@@ -43,6 +43,24 @@
 
    #+end_src
 
+** Custom Variables
+
+   Define custom variables.
+
+   #+begin_src emacs-lisp
+
+   ;; Define `emacs-org-file'
+   (defconst emacs-org-file
+     (concat user-emacs-directory "emacs.org")
+     "Path to `emacs.org' file.")
+
+   ;; Define `emacs-dot-file'
+   (defconst emacs-dot-file
+     (concat user-emacs-directory ".emacs")
+     "Path to `.emacs' file")
+
+   #+end_src
+
 * Default Init Settings
   :PROPERTIES:
   :header-args:emacs-lisp: :tangle no
@@ -142,8 +160,8 @@
    #+begin_src emacs-lisp
 
    ;; Load `config.el' file
-   (when (file-readable-p "~/.emacs.d/.emacs")
-     (load-file "~/.emacs.d/.emacs"))
+   (when (file-readable-p emacs-dot-file)
+     (load-file emacs-dot-file))
 
    #+end_src
 
@@ -273,7 +291,7 @@
 
    ;; Change default server socket directory.
    (require 'server)
-   (setq server-socket-dir "~/.emacs.d")
+   (setq server-socket-dir user-emacs-directory)
    #+end_src
 
 ** UI Customization
@@ -1092,8 +1110,8 @@
       "fe" '(:ignore t :which-key "emacs-files")
       "fee" '((lambda () (interactive) (find-file early-init-file)) :which-key "early-init-file")
       "fei" '((lambda () (interactive) (find-file user-init-file)) :which-key "user-init-file")
-      "fed" '((lambda () (interactive) (find-file "~/.emacs.d/.emacs")) :which-key "emacs-dot-file")
-      "feo" '((lambda () (interactive) (find-file "~/.emacs.d/emacs.org")) :which-key "emacs-org-file"))
+      "fed" '((lambda () (interactive) (find-file emacs-dot-file)) :which-key "emacs-dot-file")
+      "feo" '((lambda () (interactive) (find-file emacs-org-file)) :which-key "emacs-org-file"))
 
     #+end_src
 
